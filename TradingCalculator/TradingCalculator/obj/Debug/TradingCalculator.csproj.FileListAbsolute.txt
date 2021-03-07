@@ -1,0 +1,9 @@
+C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.csprojAssemblyReference.cache
+C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.Properties.Resources.resources
+C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.csproj.GenerateResource.cache
+C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.csproj.CoreCompileInputs.cache
+C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\bin\Debug\TradingCalculator.exe.config
+C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\bin\Debug\TradingCalculator.exe
+C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\bin\Debug\TradingCalculator.pdb
+C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.exe
+C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.pdb
