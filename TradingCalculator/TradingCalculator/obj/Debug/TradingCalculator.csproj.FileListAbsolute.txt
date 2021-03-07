@@ -7,3 +7,13 @@ C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\bin\Debu
 C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\bin\Debug\TradingCalculator.pdb
 C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.exe
 C:\Users\Bertz Nicanor\source\repos\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.pdb
+C:\Repositories\source\TradingApp\TradingCalculator\TradingCalculator\bin\Debug\TradingCalculator.exe.config
+C:\Repositories\source\TradingApp\TradingCalculator\TradingCalculator\bin\Debug\TradingCalculator.exe
+C:\Repositories\source\TradingApp\TradingCalculator\TradingCalculator\bin\Debug\TradingCalculator.pdb
+C:\Repositories\source\TradingApp\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.csprojAssemblyReference.cache
+C:\Repositories\source\TradingApp\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.MainForm.resources
+C:\Repositories\source\TradingApp\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.Properties.Resources.resources
+C:\Repositories\source\TradingApp\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.csproj.GenerateResource.cache
+C:\Repositories\source\TradingApp\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.csproj.CoreCompileInputs.cache
+C:\Repositories\source\TradingApp\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.exe
+C:\Repositories\source\TradingApp\TradingCalculator\TradingCalculator\obj\Debug\TradingCalculator.pdb
