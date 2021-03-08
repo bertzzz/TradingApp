@@ -6,9 +6,18 @@ namespace TradingCalculator
 {
     partial class MainForm
     {
+        private decimal _limitSellAt = 0;
+        private decimal _projProfit = 0;
+        private decimal _reinvestedAmt = 0;
+        private decimal _totalProjProfit = 0;
         private decimal _openQty = 0;
+        private decimal _closeQty = 0;
+        private decimal _qtyReinvested = 0;
         private decimal _avgPrice = 0;
-        private List<int> avgDownPercentageList = new List<int>() { 20, 30, 40, 50 };
+        private decimal _customPercent = 0;
+        private decimal _priceChangePercent = 0;
+        private decimal _profitPercent = 0;
+        private List<int> _avgDownPercentageList = new List<int>() { 20, 30, 40, 50 };
 
         private void OpenQtyTextChanged(object sender, EventArgs e)
         {
@@ -17,14 +26,13 @@ namespace TradingCalculator
 
             UpdateQtyAndPrice();
 
-
             if(string.IsNullOrWhiteSpace(txtOpenQty.Text))
             {
                 ttipOpenQty.ToolTipIcon = ToolTipIcon.Warning;
                 ttipOpenQty.ToolTipTitle = "Empty Field";
                 ttipOpenQty.Show("Please enter quantity.", txtOpenQty, 50, -20, 2000);
             }
-            else if (_openQty == 0)
+            else if (_openQty <= 0)
             {
                 ttipOpenQty.ToolTipIcon = ToolTipIcon.Error;
                 ttipOpenQty.ToolTipTitle = "Invalid Field";
@@ -52,7 +60,7 @@ namespace TradingCalculator
 
                 ResetAvgDownFields();
             }
-            else if (_avgPrice == 0)
+            else if (_avgPrice <= 0)
             {
                 ttipOpenQty.ToolTipIcon = ToolTipIcon.Error;
                 ttipOpenQty.ToolTipTitle = "Invalid Field";
@@ -64,6 +72,167 @@ namespace TradingCalculator
             }
         }
 
+        private void CustomPercentTextChanged(object sender, EventArgs e)
+        {
+            ttipCustomPercent.Hide(txtAvgDownPercent);
+            decimal customPercent = ConvertTxtToDecimal(txtAvgDownPercent.Text);
+
+            if (string.IsNullOrWhiteSpace(txtAvgDownPercent.Text))
+            {
+                lblPriceTargetCustom.Text = $"0";
+            }
+            else if(customPercent <= 0)
+            {
+                ttipCustomPercent.ToolTipIcon = ToolTipIcon.Error;
+                ttipCustomPercent.ToolTipTitle = "Invalid Field";
+                ttipCustomPercent.Show("Percent entered is invalid.", txtAvgDownPercent, 50, -20, 2000);
+                lblPriceTargetCustom.Text = $"0";
+            }
+            else
+            {
+                decimal percent = customPercent / 100;
+                lblPriceTargetCustom.Text = $"${_avgPrice - (_avgPrice * percent)}";
+            }
+        }
+
+        private void PricePercentChanged(object sender, EventArgs e)
+        {
+            _priceChangePercent = ConvertTxtToDecimal(cboPercents.Text);
+
+            if (string.IsNullOrWhiteSpace(cboPercents.Text))
+            {
+                ttipPriceChangePercent.ToolTipIcon = ToolTipIcon.Warning;
+                ttipPriceChangePercent.ToolTipTitle = "Empty Field";
+                ttipPriceChangePercent.Show("Please enter percent.", cboPercents, 10, -20, 2000);
+            }
+            else if (_priceChangePercent <= 0)
+            {
+                ttipPriceChangePercent.ToolTipIcon = ToolTipIcon.Error;
+                ttipPriceChangePercent.ToolTipTitle = "Invalid Field";
+                ttipPriceChangePercent.Show("Percent entered is invalid.", cboPercents, 10, -20, 2000);
+                cboPercents.SelectedIndex = 0;
+            }
+            else
+            {
+                CalculateTakeProfitNumbers(_priceChangePercent);
+            }
+        }
+        
+
+        private void ReinvestProfitCheckChanged(object sender, EventArgs e)
+        {
+            _profitPercent = 0;
+            _qtyReinvested = 0;
+            txtProfitPercent.Text = $"";
+            lblQuantityReinvested.Text = $"{_qtyReinvested}";
+
+            if (chkReinvestProfit.Checked)
+            {
+                gbReinvestProfit.Enabled = true;
+            }
+            else
+            {
+                gbReinvestProfit.Enabled = false;
+            }
+        }
+
+        private void ProfitPercentTxtChanged(object sender, EventArgs e)
+        {
+            _profitPercent = ConvertTxtToDecimal(txtProfitPercent.Text);
+
+            if (string.IsNullOrWhiteSpace(txtProfitPercent.Text) && chkReinvestProfit.Checked)
+            {
+                ttipProfitPercent.ToolTipIcon = ToolTipIcon.Warning;
+                ttipProfitPercent.ToolTipTitle = "Empty Field";
+                ttipProfitPercent.Show("Please enter percent.", txtProfitPercent, 10, -20, 2000);
+            }
+            else if (_profitPercent <= 0 && chkReinvestProfit.Checked)
+            {
+                ttipProfitPercent.ToolTipIcon = ToolTipIcon.Error;
+                ttipProfitPercent.ToolTipTitle = "Invalid Field";
+                ttipProfitPercent.Show("Percent entered is invalid.", txtProfitPercent, 10, -20, 2000);
+            }
+            else
+            {
+                txtProfitPercent.Text = (chkReinvestProfit.Checked) ? _profitPercent.ToString() : "";
+                CalculateTakeProfitNumbers(_priceChangePercent);
+                lblQuantityReinvested.Text = CalculateReinvestedQty(_profitPercent);
+            } 
+        }
+
+        private string CalculateReinvestedQty(decimal profitPercent)
+        {
+            decimal reinvestedAmount = (_projProfit * (_profitPercent / 100));
+            _qtyReinvested = reinvestedAmount / _limitSellAt;
+                
+            return _qtyReinvested.ToString();
+        }
+
+        private void CalculateTakeProfitNumbers(decimal priceChangePercent)
+        {
+            _closeQty = _openQty - _qtyReinvested;
+            _limitSellAt = _avgPrice * (1 + (_priceChangePercent / 100));
+            _projProfit = _limitSellAt * _openQty;
+
+            if (_profitPercent != 0)
+            {
+                _reinvestedAmt = _qtyReinvested * _limitSellAt;
+                _totalProjProfit = _projProfit - _reinvestedAmt;
+            }
+            else
+            {
+                _reinvestedAmt = 0;
+                _totalProjProfit = _projProfit;
+            }
+
+            lblCloseQty.Text = $"{_closeQty}";
+            lblLimitSellAt.Text = $"{_limitSellAt:C2}";
+            lblProjProfit.Text = $"{_projProfit:C2}";
+            lblReinvestedAmt.Text = $"-{_reinvestedAmt:C2}";
+            lblTotalProjProfit.Text = $"{_totalProjProfit:C2}";
+
+        }
+
+        private void UpdateAveDown()
+        {
+            lblAvgDown1.Text = $"{_avgDownPercentageList[0]}";
+            lblAvgDown2.Text = $"{_avgDownPercentageList[1]}";
+            lblAvgDown3.Text = $"{_avgDownPercentageList[2]}";
+            lblAvgDown4.Text = $"{_avgDownPercentageList[3]}";
+
+            lblPriceTarget1.Text = $"${_avgPrice - (_avgPrice * (Convert.ToDecimal(_avgDownPercentageList[0]) / 100))}";
+            lblPriceTarget2.Text = $"${_avgPrice - (_avgPrice * (Convert.ToDecimal(_avgDownPercentageList[1]) / 100))}";
+            lblPriceTarget3.Text = $"${_avgPrice - (_avgPrice * (Convert.ToDecimal(_avgDownPercentageList[2]) / 100))}";
+            lblPriceTarget4.Text = $"${_avgPrice - (_avgPrice * (Convert.ToDecimal(_avgDownPercentageList[3]) / 100))}";
+        }
+
+        private void UpdateQtyAndPrice()
+        {
+            _avgPrice = ConvertTxtToDecimal(txtAvgPrice.Text);
+            _openQty = ConvertTxtToDecimal(txtOpenQty.Text); 
+        }
+
+        private void EnableComboBoxes()
+        {
+            if (_openQty != 0 && _avgPrice != 0)
+            {
+                gbTakeProfit.Enabled = true;
+            }
+
+            if (_avgPrice != 0)
+            {
+                gbAvgDown.Enabled = true;
+                UpdateAveDown();
+            }
+        }
+
+        private decimal ConvertTxtToDecimal(string txt)
+        {
+            //Returns 0 if conversion fails.
+            bool isNumberic = decimal.TryParse(txt, out decimal x);
+            return x;
+        }
+
         private void ResetAvgDownFields()
         {
             lblPriceTarget1.Text = $"$0";
@@ -73,70 +242,6 @@ namespace TradingCalculator
             lblPriceTargetCustom.Text = $"0";
 
             txtAvgDownPercent.Text = "";
-        }
-
-        private void UpdateTakeProfit()
-        {
-        }
-
-        private void UpdateAveDown()
-        {
-            lblAvgDown1.Text = $"{avgDownPercentageList[0]}";
-            lblAvgDown2.Text = $"{avgDownPercentageList[1]}";
-            lblAvgDown3.Text = $"{avgDownPercentageList[2]}";
-            lblAvgDown4.Text = $"{avgDownPercentageList[3]}";
-
-            lblPriceTarget1.Text = $"${_avgPrice - (_avgPrice * (Convert.ToDecimal(avgDownPercentageList[0]) / 100))}";
-            lblPriceTarget2.Text = $"${_avgPrice - (_avgPrice * (Convert.ToDecimal(avgDownPercentageList[1]) / 100))}";
-            lblPriceTarget3.Text = $"${_avgPrice - (_avgPrice * (Convert.ToDecimal(avgDownPercentageList[2]) / 100))}";
-            lblPriceTarget4.Text = $"${_avgPrice - (_avgPrice * (Convert.ToDecimal(avgDownPercentageList[3]) / 100))}";
-        }                                                                                                 
-
-        private void CustomPercentTextChanged(object sender, EventArgs e)
-        {
-            ttipCustomPercent.Hide(txtAvgDownPercent);
-            bool percentIsNum = decimal.TryParse(txtAvgDownPercent.Text, out decimal result);
-
-            if (string.IsNullOrWhiteSpace(txtAvgDownPercent.Text))
-            {
-                lblPriceTargetCustom.Text = $"0";
-            }
-            else if(!percentIsNum)
-            {
-                ttipCustomPercent.ToolTipIcon = ToolTipIcon.Error;
-                ttipCustomPercent.ToolTipTitle = "Invalid Field";
-                ttipCustomPercent.Show("Percent entered is invalid.", txtAvgDownPercent, 50, -20, 2000);
-                lblPriceTargetCustom.Text = $"0";
-            }
-            else
-            {
-                decimal percent = result / 100;
-                lblPriceTargetCustom.Text = $"${_avgPrice - (_avgPrice * percent)}";
-            }
-        }
-
-        private void UpdateQtyAndPrice()
-        {
-            bool avgPriceIsNumeric = decimal.TryParse(txtAvgPrice.Text, out decimal avgPriceDec);
-            _avgPrice = avgPriceDec;
-
-            bool openQtyIsNumeric = decimal.TryParse(txtOpenQty.Text, out decimal openQtyDec);
-            _openQty = openQtyDec;
-        }
-
-        private void EnableComboBoxes()
-        {
-            if (_openQty != 0 && _avgPrice != 0)
-            {
-                gbTakeProfit.Enabled = true;
-                UpdateTakeProfit();
-            }
-
-            if (_avgPrice != 0)
-            {
-                gbAvgDown.Enabled = true;
-                UpdateAveDown();
-            }
         }
 
         protected override void Dispose(bool disposing)
@@ -166,8 +271,8 @@ namespace TradingCalculator
         private Label lblAvgPrice;
         private Label lblTpa;
         private Label lblEstP;
-        private Label lblTakeProfitAt;
-        private Label lblEstProfit;
+        private Label lblLimitSellAt;
+        private Label lblProjProfit;
         private GroupBox gbAvgDown;
         private Label label1;
         private Label lblAvgDown4;
@@ -182,13 +287,13 @@ namespace TradingCalculator
         private Label lblPriceTargetCustom;
         private Label lblCustom;
         private Label lblCloseQty;
-        private Label lblclseqty;
+        private Label lblcty;
         private Label lblPPercent;
-        private CheckBox chkLeaveShares;
+        private CheckBox chkReinvestProfit;
         private Button btnClearAll;
         private Label lblCaption;
-        private GroupBox groupBox1;
-        private Label label2;
+        private GroupBox gbReinvestProfit;
+        private Label lblTotalProjProfit;
         private Label lblTotalProfit;
         private Label lblReinvestedAmt;
         private Label lblReinvest;
@@ -199,6 +304,9 @@ namespace TradingCalculator
         private TextBox txtAvgDownPercent;
         private TextBox txtProfitPercent;
         private Button btnClose;
+        private Label avgDownPercLiteral;
+        private Label lblCopyright;
+        private ToolTip ttipCustomPercent;
         private System.ComponentModel.IContainer components = null;
 
         #endregion
@@ -213,18 +321,20 @@ namespace TradingCalculator
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gbWorkSpace = new System.Windows.Forms.GroupBox();
+            this.lblCopyright = new System.Windows.Forms.Label();
             this.btnClose = new System.Windows.Forms.Button();
             this.txtAvgPrice = new System.Windows.Forms.TextBox();
             this.txtOpenQty = new System.Windows.Forms.TextBox();
             this.lblCaption = new System.Windows.Forms.Label();
             this.btnClearAll = new System.Windows.Forms.Button();
             this.gbAvgDown = new System.Windows.Forms.GroupBox();
-            this.label3 = new System.Windows.Forms.Label();
+            this.avgDownPercLiteral = new System.Windows.Forms.Label();
             this.txtAvgDownPercent = new System.Windows.Forms.TextBox();
             this.lblPriceTargetCustom = new System.Windows.Forms.Label();
             this.lblCustom = new System.Windows.Forms.Label();
@@ -239,19 +349,21 @@ namespace TradingCalculator
             this.lblAvgDown2 = new System.Windows.Forms.Label();
             this.lblAvgDown1 = new System.Windows.Forms.Label();
             this.gbTakeProfit = new System.Windows.Forms.GroupBox();
-            this.label2 = new System.Windows.Forms.Label();
+            this.lblTotalProjProfit = new System.Windows.Forms.Label();
+            this.lblCloseQty = new System.Windows.Forms.Label();
             this.lblTotalProfit = new System.Windows.Forms.Label();
+            this.lblcty = new System.Windows.Forms.Label();
             this.lblReinvestedAmt = new System.Windows.Forms.Label();
             this.lblReinvest = new System.Windows.Forms.Label();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.gbReinvestProfit = new System.Windows.Forms.GroupBox();
+            this.lblQuantityReinvested = new System.Windows.Forms.Label();
+            this.lblQR = new System.Windows.Forms.Label();
             this.txtProfitPercent = new System.Windows.Forms.TextBox();
-            this.lblCloseQty = new System.Windows.Forms.Label();
-            this.lblclseqty = new System.Windows.Forms.Label();
             this.lblPPercent = new System.Windows.Forms.Label();
-            this.lblEstProfit = new System.Windows.Forms.Label();
-            this.lblTakeProfitAt = new System.Windows.Forms.Label();
+            this.lblProjProfit = new System.Windows.Forms.Label();
+            this.lblLimitSellAt = new System.Windows.Forms.Label();
             this.lblEstP = new System.Windows.Forms.Label();
-            this.chkLeaveShares = new System.Windows.Forms.CheckBox();
+            this.chkReinvestProfit = new System.Windows.Forms.CheckBox();
             this.lblTpa = new System.Windows.Forms.Label();
             this.lblProfitPercent = new System.Windows.Forms.Label();
             this.cboPercents = new System.Windows.Forms.ComboBox();
@@ -260,11 +372,13 @@ namespace TradingCalculator
             this.ttipOpenQty = new System.Windows.Forms.ToolTip(this.components);
             this.ttipAvgPrice = new System.Windows.Forms.ToolTip(this.components);
             this.ttipCustomPercent = new System.Windows.Forms.ToolTip(this.components);
+            this.ttipPriceChangePercent = new System.Windows.Forms.ToolTip(this.components);
+            this.ttipProfitPercent = new System.Windows.Forms.ToolTip(this.components);
             this.menuStrip1.SuspendLayout();
             this.gbWorkSpace.SuspendLayout();
             this.gbAvgDown.SuspendLayout();
             this.gbTakeProfit.SuspendLayout();
-            this.groupBox1.SuspendLayout();
+            this.gbReinvestProfit.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -301,6 +415,7 @@ namespace TradingCalculator
             // 
             // gbWorkSpace
             // 
+            this.gbWorkSpace.Controls.Add(this.lblCopyright);
             this.gbWorkSpace.Controls.Add(this.btnClose);
             this.gbWorkSpace.Controls.Add(this.txtAvgPrice);
             this.gbWorkSpace.Controls.Add(this.txtOpenQty);
@@ -317,9 +432,19 @@ namespace TradingCalculator
             this.gbWorkSpace.TabStop = false;
             this.gbWorkSpace.Text = "Workspace ";
             // 
+            // lblCopyright
+            // 
+            this.lblCopyright.AutoSize = true;
+            this.lblCopyright.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblCopyright.Location = new System.Drawing.Point(420, 383);
+            this.lblCopyright.Name = "lblCopyright";
+            this.lblCopyright.Size = new System.Drawing.Size(72, 9);
+            this.lblCopyright.TabIndex = 13;
+            this.lblCopyright.Text = "_dehydratedCoder™";
+            // 
             // btnClose
             // 
-            this.btnClose.Location = new System.Drawing.Point(394, 367);
+            this.btnClose.Location = new System.Drawing.Point(395, 344);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
             this.btnClose.TabIndex = 12;
@@ -355,7 +480,7 @@ namespace TradingCalculator
             // 
             // btnClearAll
             // 
-            this.btnClearAll.Location = new System.Drawing.Point(394, 339);
+            this.btnClearAll.Location = new System.Drawing.Point(303, 344);
             this.btnClearAll.Name = "btnClearAll";
             this.btnClearAll.Size = new System.Drawing.Size(75, 23);
             this.btnClearAll.TabIndex = 8;
@@ -364,7 +489,7 @@ namespace TradingCalculator
             // 
             // gbAvgDown
             // 
-            this.gbAvgDown.Controls.Add(this.label3);
+            this.gbAvgDown.Controls.Add(this.avgDownPercLiteral);
             this.gbAvgDown.Controls.Add(this.txtAvgDownPercent);
             this.gbAvgDown.Controls.Add(this.lblPriceTargetCustom);
             this.gbAvgDown.Controls.Add(this.lblCustom);
@@ -386,14 +511,14 @@ namespace TradingCalculator
             this.gbAvgDown.TabStop = false;
             this.gbAvgDown.Text = "Average Down";
             // 
-            // label3
+            // avgDownPercLiteral
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(56, 184);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(15, 13);
-            this.label3.TabIndex = 14;
-            this.label3.Text = "%";
+            this.avgDownPercLiteral.AutoSize = true;
+            this.avgDownPercLiteral.Location = new System.Drawing.Point(56, 184);
+            this.avgDownPercLiteral.Name = "avgDownPercLiteral";
+            this.avgDownPercLiteral.Size = new System.Drawing.Size(15, 13);
+            this.avgDownPercLiteral.TabIndex = 14;
+            this.avgDownPercLiteral.Text = "%";
             // 
             // txtAvgDownPercent
             // 
@@ -513,15 +638,17 @@ namespace TradingCalculator
             // 
             // gbTakeProfit
             // 
-            this.gbTakeProfit.Controls.Add(this.label2);
+            this.gbTakeProfit.Controls.Add(this.lblTotalProjProfit);
+            this.gbTakeProfit.Controls.Add(this.lblCloseQty);
             this.gbTakeProfit.Controls.Add(this.lblTotalProfit);
+            this.gbTakeProfit.Controls.Add(this.lblcty);
             this.gbTakeProfit.Controls.Add(this.lblReinvestedAmt);
             this.gbTakeProfit.Controls.Add(this.lblReinvest);
-            this.gbTakeProfit.Controls.Add(this.groupBox1);
-            this.gbTakeProfit.Controls.Add(this.lblEstProfit);
-            this.gbTakeProfit.Controls.Add(this.lblTakeProfitAt);
+            this.gbTakeProfit.Controls.Add(this.gbReinvestProfit);
+            this.gbTakeProfit.Controls.Add(this.lblProjProfit);
+            this.gbTakeProfit.Controls.Add(this.lblLimitSellAt);
             this.gbTakeProfit.Controls.Add(this.lblEstP);
-            this.gbTakeProfit.Controls.Add(this.chkLeaveShares);
+            this.gbTakeProfit.Controls.Add(this.chkReinvestProfit);
             this.gbTakeProfit.Controls.Add(this.lblTpa);
             this.gbTakeProfit.Controls.Add(this.lblProfitPercent);
             this.gbTakeProfit.Controls.Add(this.cboPercents);
@@ -533,15 +660,24 @@ namespace TradingCalculator
             this.gbTakeProfit.TabStop = false;
             this.gbTakeProfit.Text = "Take Profit";
             // 
-            // label2
+            // lblTotalProjProfit
             // 
-            this.label2.AutoSize = true;
-            this.label2.ForeColor = System.Drawing.Color.Green;
-            this.label2.Location = new System.Drawing.Point(114, 269);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(19, 13);
-            this.label2.TabIndex = 20;
-            this.label2.Text = "$0";
+            this.lblTotalProjProfit.AutoSize = true;
+            this.lblTotalProjProfit.ForeColor = System.Drawing.Color.Green;
+            this.lblTotalProjProfit.Location = new System.Drawing.Point(111, 269);
+            this.lblTotalProjProfit.Name = "lblTotalProjProfit";
+            this.lblTotalProjProfit.Size = new System.Drawing.Size(19, 13);
+            this.lblTotalProjProfit.TabIndex = 20;
+            this.lblTotalProjProfit.Text = "$0";
+            // 
+            // lblCloseQty
+            // 
+            this.lblCloseQty.AutoSize = true;
+            this.lblCloseQty.Location = new System.Drawing.Point(116, 165);
+            this.lblCloseQty.Name = "lblCloseQty";
+            this.lblCloseQty.Size = new System.Drawing.Size(13, 13);
+            this.lblCloseQty.TabIndex = 15;
+            this.lblCloseQty.Text = "0";
             // 
             // lblTotalProfit
             // 
@@ -552,37 +688,64 @@ namespace TradingCalculator
             this.lblTotalProfit.TabIndex = 19;
             this.lblTotalProfit.Text = "Total Projected Profit:";
             // 
+            // lblcty
+            // 
+            this.lblcty.AutoSize = true;
+            this.lblcty.Location = new System.Drawing.Point(3, 165);
+            this.lblcty.Name = "lblcty";
+            this.lblcty.Size = new System.Drawing.Size(66, 13);
+            this.lblcty.TabIndex = 14;
+            this.lblcty.Text = "Qty to close:";
+            // 
             // lblReinvestedAmt
             // 
             this.lblReinvestedAmt.AutoSize = true;
-            this.lblReinvestedAmt.ForeColor = System.Drawing.Color.Olive;
-            this.lblReinvestedAmt.Location = new System.Drawing.Point(114, 241);
+            this.lblReinvestedAmt.ForeColor = System.Drawing.Color.DarkGoldenrod;
+            this.lblReinvestedAmt.Location = new System.Drawing.Point(107, 240);
             this.lblReinvestedAmt.Name = "lblReinvestedAmt";
-            this.lblReinvestedAmt.Size = new System.Drawing.Size(19, 13);
+            this.lblReinvestedAmt.Size = new System.Drawing.Size(22, 13);
             this.lblReinvestedAmt.TabIndex = 18;
-            this.lblReinvestedAmt.Text = "$0";
+            this.lblReinvestedAmt.Text = "-$0";
             // 
             // lblReinvest
             // 
             this.lblReinvest.AutoSize = true;
-            this.lblReinvest.Location = new System.Drawing.Point(2, 241);
+            this.lblReinvest.Location = new System.Drawing.Point(3, 240);
             this.lblReinvest.Name = "lblReinvest";
             this.lblReinvest.Size = new System.Drawing.Size(85, 13);
             this.lblReinvest.TabIndex = 17;
             this.lblReinvest.Text = "Reinvested Amt:";
             // 
-            // groupBox1
+            // gbReinvestProfit
             // 
-            this.groupBox1.Controls.Add(this.txtProfitPercent);
-            this.groupBox1.Controls.Add(this.lblCloseQty);
-            this.groupBox1.Controls.Add(this.lblclseqty);
-            this.groupBox1.Controls.Add(this.lblPPercent);
-            this.groupBox1.Enabled = false;
-            this.groupBox1.Location = new System.Drawing.Point(5, 96);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(147, 69);
-            this.groupBox1.TabIndex = 16;
-            this.groupBox1.TabStop = false;
+            this.gbReinvestProfit.Controls.Add(this.lblQuantityReinvested);
+            this.gbReinvestProfit.Controls.Add(this.lblQR);
+            this.gbReinvestProfit.Controls.Add(this.txtProfitPercent);
+            this.gbReinvestProfit.Controls.Add(this.lblPPercent);
+            this.gbReinvestProfit.Enabled = false;
+            this.gbReinvestProfit.Location = new System.Drawing.Point(5, 96);
+            this.gbReinvestProfit.Name = "gbReinvestProfit";
+            this.gbReinvestProfit.Size = new System.Drawing.Size(147, 57);
+            this.gbReinvestProfit.TabIndex = 16;
+            this.gbReinvestProfit.TabStop = false;
+            // 
+            // lblQuantityReinvested
+            // 
+            this.lblQuantityReinvested.AutoSize = true;
+            this.lblQuantityReinvested.Location = new System.Drawing.Point(86, 40);
+            this.lblQuantityReinvested.Name = "lblQuantityReinvested";
+            this.lblQuantityReinvested.Size = new System.Drawing.Size(13, 13);
+            this.lblQuantityReinvested.TabIndex = 18;
+            this.lblQuantityReinvested.Text = "0";
+            // 
+            // lblQR
+            // 
+            this.lblQR.AutoSize = true;
+            this.lblQR.Location = new System.Drawing.Point(6, 41);
+            this.lblQR.Name = "lblQR";
+            this.lblQR.Size = new System.Drawing.Size(83, 13);
+            this.lblQR.TabIndex = 17;
+            this.lblQR.Text = "Qty Reinvested:";
             // 
             // txtProfitPercent
             // 
@@ -590,24 +753,7 @@ namespace TradingCalculator
             this.txtProfitPercent.Name = "txtProfitPercent";
             this.txtProfitPercent.Size = new System.Drawing.Size(32, 20);
             this.txtProfitPercent.TabIndex = 16;
-            // 
-            // lblCloseQty
-            // 
-            this.lblCloseQty.AutoSize = true;
-            this.lblCloseQty.Location = new System.Drawing.Point(87, 41);
-            this.lblCloseQty.Name = "lblCloseQty";
-            this.lblCloseQty.Size = new System.Drawing.Size(35, 13);
-            this.lblCloseQty.TabIndex = 15;
-            this.lblCloseQty.Text = "label2";
-            // 
-            // lblclseqty
-            // 
-            this.lblclseqty.AutoSize = true;
-            this.lblclseqty.Location = new System.Drawing.Point(6, 41);
-            this.lblclseqty.Name = "lblclseqty";
-            this.lblclseqty.Size = new System.Drawing.Size(66, 13);
-            this.lblclseqty.TabIndex = 14;
-            this.lblclseqty.Text = "Qty to close:";
+            this.txtProfitPercent.TextChanged += new System.EventHandler(this.ProfitPercentTxtChanged);
             // 
             // lblPPercent
             // 
@@ -618,48 +764,49 @@ namespace TradingCalculator
             this.lblPPercent.TabIndex = 12;
             this.lblPPercent.Text = "Profit Percent:";
             // 
-            // lblEstProfit
+            // lblProjProfit
             // 
-            this.lblEstProfit.AutoSize = true;
-            this.lblEstProfit.ForeColor = System.Drawing.Color.Green;
-            this.lblEstProfit.Location = new System.Drawing.Point(114, 208);
-            this.lblEstProfit.Name = "lblEstProfit";
-            this.lblEstProfit.Size = new System.Drawing.Size(19, 13);
-            this.lblEstProfit.TabIndex = 10;
-            this.lblEstProfit.Text = "$0";
+            this.lblProjProfit.AutoSize = true;
+            this.lblProjProfit.ForeColor = System.Drawing.Color.Green;
+            this.lblProjProfit.Location = new System.Drawing.Point(111, 214);
+            this.lblProjProfit.Name = "lblProjProfit";
+            this.lblProjProfit.Size = new System.Drawing.Size(19, 13);
+            this.lblProjProfit.TabIndex = 10;
+            this.lblProjProfit.Text = "$0";
             // 
-            // lblTakeProfitAt
+            // lblLimitSellAt
             // 
-            this.lblTakeProfitAt.AutoSize = true;
-            this.lblTakeProfitAt.Location = new System.Drawing.Point(114, 182);
-            this.lblTakeProfitAt.Name = "lblTakeProfitAt";
-            this.lblTakeProfitAt.Size = new System.Drawing.Size(19, 13);
-            this.lblTakeProfitAt.TabIndex = 9;
-            this.lblTakeProfitAt.Text = "$0";
+            this.lblLimitSellAt.AutoSize = true;
+            this.lblLimitSellAt.Location = new System.Drawing.Point(111, 192);
+            this.lblLimitSellAt.Name = "lblLimitSellAt";
+            this.lblLimitSellAt.Size = new System.Drawing.Size(19, 13);
+            this.lblLimitSellAt.TabIndex = 9;
+            this.lblLimitSellAt.Text = "$0";
             // 
             // lblEstP
             // 
             this.lblEstP.AutoSize = true;
-            this.lblEstP.Location = new System.Drawing.Point(2, 208);
+            this.lblEstP.Location = new System.Drawing.Point(3, 214);
             this.lblEstP.Name = "lblEstP";
             this.lblEstP.Size = new System.Drawing.Size(82, 13);
             this.lblEstP.TabIndex = 8;
             this.lblEstP.Text = "Projected Profit:";
             // 
-            // chkLeaveShares
+            // chkReinvestProfit
             // 
-            this.chkLeaveShares.AutoSize = true;
-            this.chkLeaveShares.Location = new System.Drawing.Point(9, 73);
-            this.chkLeaveShares.Name = "chkLeaveShares";
-            this.chkLeaveShares.Size = new System.Drawing.Size(101, 17);
-            this.chkLeaveShares.TabIndex = 11;
-            this.chkLeaveShares.Text = "Reinvest Profit?";
-            this.chkLeaveShares.UseVisualStyleBackColor = true;
+            this.chkReinvestProfit.AutoSize = true;
+            this.chkReinvestProfit.Location = new System.Drawing.Point(9, 73);
+            this.chkReinvestProfit.Name = "chkReinvestProfit";
+            this.chkReinvestProfit.Size = new System.Drawing.Size(101, 17);
+            this.chkReinvestProfit.TabIndex = 11;
+            this.chkReinvestProfit.Text = "Reinvest Profit?";
+            this.chkReinvestProfit.UseVisualStyleBackColor = true;
+            this.chkReinvestProfit.CheckedChanged += new System.EventHandler(this.ReinvestProfitCheckChanged);
             // 
             // lblTpa
             // 
             this.lblTpa.AutoSize = true;
-            this.lblTpa.Location = new System.Drawing.Point(2, 182);
+            this.lblTpa.Location = new System.Drawing.Point(3, 192);
             this.lblTpa.Name = "lblTpa";
             this.lblTpa.Size = new System.Drawing.Size(61, 13);
             this.lblTpa.TabIndex = 6;
@@ -692,7 +839,8 @@ namespace TradingCalculator
             this.cboPercents.Name = "cboPercents";
             this.cboPercents.Size = new System.Drawing.Size(43, 21);
             this.cboPercents.TabIndex = 4;
-            this.cboPercents.Text = "10";
+            this.cboPercents.SelectedIndexChanged += new System.EventHandler(this.PricePercentChanged);
+            this.cboPercents.TextChanged += new System.EventHandler(this.PricePercentChanged);
             // 
             // lblAvgPrice
             // 
@@ -716,10 +864,12 @@ namespace TradingCalculator
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.SystemColors.ButtonFace;
             this.ClientSize = new System.Drawing.Size(508, 423);
             this.Controls.Add(this.gbWorkSpace);
             this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "MainForm";
@@ -733,15 +883,17 @@ namespace TradingCalculator
             this.gbAvgDown.PerformLayout();
             this.gbTakeProfit.ResumeLayout(false);
             this.gbTakeProfit.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.gbReinvestProfit.ResumeLayout(false);
+            this.gbReinvestProfit.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
         #endregion
 
-        private Label label3;
-        private ToolTip ttipCustomPercent;
+        private ToolTip ttipPriceChangePercent;
+        private ToolTip ttipProfitPercent;
+        private Label lblQuantityReinvested;
+        private Label lblQR;
     }
 }
