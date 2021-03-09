@@ -205,6 +205,7 @@ namespace TradingCalculator
             this.gbAvgDown.TabIndex = 7;
             this.gbAvgDown.TabStop = false;
             this.gbAvgDown.Text = "Average Down";
+            this.gbAvgDown.EnabledChanged += new System.EventHandler(this.AverageDownComboBoxEnabledChanged);
             // 
             // avgDownPercLiteral
             // 
@@ -348,12 +349,13 @@ namespace TradingCalculator
             this.gbTakeProfit.Controls.Add(this.lblProfitPercent);
             this.gbTakeProfit.Controls.Add(this.cboPercents);
             this.gbTakeProfit.Enabled = false;
-            this.gbTakeProfit.Location = new System.Drawing.Point(255, 38);
+            this.gbTakeProfit.Location = new System.Drawing.Point(256, 38);
             this.gbTakeProfit.Name = "gbTakeProfit";
             this.gbTakeProfit.Size = new System.Drawing.Size(214, 295);
             this.gbTakeProfit.TabIndex = 6;
             this.gbTakeProfit.TabStop = false;
             this.gbTakeProfit.Text = "Take Profit";
+            this.gbTakeProfit.EnabledChanged += new System.EventHandler(this.TakeProfitComboBoxEnabledChanged);
             // 
             // lblTotalProjProfit
             // 
@@ -490,6 +492,7 @@ namespace TradingCalculator
             // chkReinvestProfit
             // 
             this.chkReinvestProfit.AutoSize = true;
+            this.chkReinvestProfit.Enabled = false;
             this.chkReinvestProfit.Location = new System.Drawing.Point(9, 73);
             this.chkReinvestProfit.Name = "chkReinvestProfit";
             this.chkReinvestProfit.Size = new System.Drawing.Size(101, 17);
@@ -510,7 +513,7 @@ namespace TradingCalculator
             // lblProfitPercent
             // 
             this.lblProfitPercent.AutoSize = true;
-            this.lblProfitPercent.Location = new System.Drawing.Point(6, 37);
+            this.lblProfitPercent.Location = new System.Drawing.Point(3, 42);
             this.lblProfitPercent.Name = "lblProfitPercent";
             this.lblProfitPercent.Size = new System.Drawing.Size(114, 13);
             this.lblProfitPercent.TabIndex = 5;
@@ -530,7 +533,7 @@ namespace TradingCalculator
             "80",
             "90",
             "100"});
-            this.cboPercents.Location = new System.Drawing.Point(120, 34);
+            this.cboPercents.Location = new System.Drawing.Point(123, 39);
             this.cboPercents.Name = "cboPercents";
             this.cboPercents.Size = new System.Drawing.Size(43, 21);
             this.cboPercents.TabIndex = 4;

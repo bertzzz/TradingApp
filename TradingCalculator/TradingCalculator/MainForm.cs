@@ -14,7 +14,6 @@ namespace TradingCalculator
         private decimal _closeQty = 0;
         private decimal _qtyReinvested = 0;
         private decimal _avgPrice = 0;
-        private decimal _customPercent = 0;
         private decimal _priceChangePercent = 0;
         private decimal _profitPercent = 0;
         private List<int> _avgDownPercentageList = new List<int>() { 20, 30, 40, 50 };
@@ -62,8 +61,6 @@ namespace TradingCalculator
                 ttipOpenQty.ToolTipIcon = ToolTipIcon.Warning;
                 ttipOpenQty.ToolTipTitle = "Empty Field";
                 ttipOpenQty.Show("Please enter price.", txtAvgPrice, 50, -20, 2000);
-
-                ResetAvgDownFields();
             }
             else if (_avgPrice <= 0)
             {
@@ -95,10 +92,28 @@ namespace TradingCalculator
                 ttipCustomPercent.Show("Percent entered is invalid.", txtAvgDownPercent, 50, -20, 2000);
                 lblPriceTargetCustom.Text = $"0";
             }
+            else if (customPercent > 100)
+            {
+                ttipCustomPercent.ToolTipIcon = ToolTipIcon.Error;
+                ttipCustomPercent.ToolTipTitle = "Invalid Field";
+                ttipCustomPercent.Show("Percent entered cannot exceed 100.", txtAvgDownPercent, 10, -20);
+            }
             else
             {
                 decimal percent = customPercent / 100;
                 lblPriceTargetCustom.Text = $"${_avgPrice - (_avgPrice * percent)}";
+            }
+        }
+
+        private void AverageDownComboBoxEnabledChanged(object sender, EventArgs e)
+        {
+            if (!((GroupBox)sender).Enabled)
+            {
+                ResetAvgDownFields();
+            }
+            else
+            {
+                UpdateAveDown();
             }
         }
 
@@ -132,24 +147,31 @@ namespace TradingCalculator
 
         private void PricePercentChanged(object sender, EventArgs e)
         {
+            chkReinvestProfit.Enabled = false;
             _priceChangePercent = ConvertTxtToDecimal(cboPercents.Text);
 
-            if (string.IsNullOrWhiteSpace(cboPercents.Text))
+            if (gbTakeProfit.Enabled)
             {
-                ttipPriceChangePercent.ToolTipIcon = ToolTipIcon.Warning;
-                ttipPriceChangePercent.ToolTipTitle = "Empty Field";
-                ttipPriceChangePercent.Show("Please enter percent.", cboPercents, 10, -20, 2000);
-            }
-            else if (_priceChangePercent <= 0)
-            {
-                ttipPriceChangePercent.ToolTipIcon = ToolTipIcon.Error;
-                ttipPriceChangePercent.ToolTipTitle = "Invalid Field";
-                ttipPriceChangePercent.Show("Percent entered is invalid.", cboPercents, 10, -20, 2000);
-                cboPercents.SelectedIndex = 0;
-            }
-            else
-            {
-                CalculateTakeProfitNumbers(_priceChangePercent);
+                if (string.IsNullOrWhiteSpace(cboPercents.Text))
+                {
+                    ResetTakeProfitFields();
+
+                    ttipPriceChangePercent.ToolTipIcon = ToolTipIcon.Warning;
+                    ttipPriceChangePercent.ToolTipTitle = "Empty Field";
+                    ttipPriceChangePercent.Show("Please enter percent.", cboPercents, 10, -20, 2000);
+                }
+                else if (_priceChangePercent <= 0)
+                {
+                    ttipPriceChangePercent.ToolTipIcon = ToolTipIcon.Error;
+                    ttipPriceChangePercent.ToolTipTitle = "Invalid Field";
+                    ttipPriceChangePercent.Show("Percent entered is invalid.", cboPercents, 10, -20, 2000);
+                    cboPercents.SelectedIndex = 0;
+                }
+                else
+                {
+                    chkReinvestProfit.Enabled = true;
+                    CalculateTakeProfitNumbers(_priceChangePercent);
+                }
             }
         }
 
@@ -160,25 +182,19 @@ namespace TradingCalculator
             txtProfitPercent.Text = $"";
             lblQuantityReinvested.Text = $"{_qtyReinvested}";
 
-            if (chkReinvestProfit.Checked)
-            {
-                gbReinvestProfit.Enabled = true;
-            }
-            else
-            {
-                gbReinvestProfit.Enabled = false;
-            }
+            gbReinvestProfit.Enabled = chkReinvestProfit.Checked;
         }
 
         private void ProfitPercentTxtChanged(object sender, EventArgs e)
         {
+            ttipProfitPercent.Hide(txtProfitPercent);
             _profitPercent = ConvertTxtToDecimal(txtProfitPercent.Text);
 
-            if (string.IsNullOrWhiteSpace(txtProfitPercent.Text) && chkReinvestProfit.Checked)
+            if (string.IsNullOrWhiteSpace(txtProfitPercent.Text))
             {
-                ttipProfitPercent.ToolTipIcon = ToolTipIcon.Warning;
-                ttipProfitPercent.ToolTipTitle = "Empty Field";
-                ttipProfitPercent.Show("Please enter percent.", txtProfitPercent, 10, -20, 2000);
+                _qtyReinvested = 0;
+                lblQuantityReinvested.Text = $"{_qtyReinvested}";
+                CalculateTakeProfitNumbers(_priceChangePercent);
             }
             else if (_profitPercent <= 0 && chkReinvestProfit.Checked)
             {
@@ -186,12 +202,45 @@ namespace TradingCalculator
                 ttipProfitPercent.ToolTipTitle = "Invalid Field";
                 ttipProfitPercent.Show("Percent entered is invalid.", txtProfitPercent, 10, -20, 2000);
             }
+            else if (_profitPercent > 100)
+            {
+                ttipProfitPercent.ToolTipIcon = ToolTipIcon.Error;
+                ttipProfitPercent.ToolTipTitle = "Invalid Field";
+                ttipProfitPercent.Show("Percent entered cannot exceed 100.", txtProfitPercent, 10, -20);
+            }
             else
             {
                 txtProfitPercent.Text = (chkReinvestProfit.Checked) ? _profitPercent.ToString() : "";
-                CalculateTakeProfitNumbers(_priceChangePercent);
                 lblQuantityReinvested.Text = CalculateReinvestedQty(_profitPercent);
+                CalculateTakeProfitNumbers(_priceChangePercent);
             }
+        }
+
+        private void TakeProfitComboBoxEnabledChanged(object sender, EventArgs e)
+        {
+            if (!((GroupBox)sender).Enabled)
+            {
+                chkReinvestProfit.Checked = false;
+                ResetTakeProfitFields();
+            }
+        }
+
+        private void ResetTakeProfitFields()
+        {
+            _priceChangePercent = 0;
+            cboPercents.Text = "";
+
+            _closeQty = 0;
+            _limitSellAt = 0;
+            _projProfit = 0;
+            _reinvestedAmt = 0;
+            _totalProjProfit = 0;
+
+            lblCloseQty.Text = $"{_closeQty}";
+            lblLimitSellAt.Text = $"{_limitSellAt:C2}";
+            lblProjProfit.Text = $"{_projProfit:C2}";
+            lblReinvestedAmt.Text = $"-{_reinvestedAmt:C2}";
+            lblTotalProjProfit.Text = $"{_totalProjProfit:C2}";
         }
 
         private string CalculateReinvestedQty(decimal profitPercent)
@@ -205,7 +254,7 @@ namespace TradingCalculator
         private void CalculateTakeProfitNumbers(decimal priceChangePercent)
         {
             _closeQty = _openQty - _qtyReinvested;
-            _limitSellAt = _avgPrice * (1 + (_priceChangePercent / 100));
+            _limitSellAt = _avgPrice * (1 + (priceChangePercent / 100));
             _projProfit = _limitSellAt * _openQty;
 
             if (_profitPercent != 0)
@@ -246,7 +295,6 @@ namespace TradingCalculator
             if (_avgPrice != 0)
             {
                 gbAvgDown.Enabled = true;
-                UpdateAveDown();
             }
         }
 
