@@ -25,22 +25,22 @@ namespace TradingCalculator
 
         private void OpenQtyTextChanged(object sender, EventArgs e)
         {
-            ttipOpenQty.Hide(txtOpenQty);
+            ttipTradingCal.Hide(txtOpenQty);
             gbTakeProfit.Enabled = false;
 
             UpdateQtyAndPrice();
 
             if (string.IsNullOrWhiteSpace(txtOpenQty.Text))
             {
-                ttipOpenQty.ToolTipIcon = ToolTipIcon.Warning;
-                ttipOpenQty.ToolTipTitle = "Empty Field";
-                ttipOpenQty.Show("Please enter quantity.", txtOpenQty, 50, -20, 2000);
+                ttipTradingCal.ToolTipIcon = ToolTipIcon.Warning;
+                ttipTradingCal.ToolTipTitle = "Empty Field";
+                ttipTradingCal.Show("Please enter quantity.", txtOpenQty, 50, -20, 2000);
             }
             else if (_openQty <= 0)
             {
-                ttipOpenQty.ToolTipIcon = ToolTipIcon.Error;
-                ttipOpenQty.ToolTipTitle = "Invalid Field";
-                ttipOpenQty.Show("Quantity entered is invalid.", txtOpenQty, 50, -20);
+                ttipTradingCal.ToolTipIcon = ToolTipIcon.Error;
+                ttipTradingCal.ToolTipTitle = "Invalid Field";
+                ttipTradingCal.Show("Quantity entered is invalid.", txtOpenQty, 50, -20);
             }
             else
             {
@@ -50,7 +50,7 @@ namespace TradingCalculator
 
         private void AvgPriceTextChanged(object sender, EventArgs e)
         {
-            ttipAvgPrice.Hide(txtAvgPrice);
+            ttipTradingCal.Hide(txtAvgPrice);
             gbTakeProfit.Enabled = false;
             gbAvgDown.Enabled = false;
 
@@ -58,15 +58,15 @@ namespace TradingCalculator
 
             if (string.IsNullOrWhiteSpace(txtAvgPrice.Text))
             {
-                ttipOpenQty.ToolTipIcon = ToolTipIcon.Warning;
-                ttipOpenQty.ToolTipTitle = "Empty Field";
-                ttipOpenQty.Show("Please enter price.", txtAvgPrice, 50, -20, 2000);
+                ttipTradingCal.ToolTipIcon = ToolTipIcon.Warning;
+                ttipTradingCal.ToolTipTitle = "Empty Field";
+                ttipTradingCal.Show("Please enter price.", txtAvgPrice, 50, -20, 2000);
             }
             else if (_avgPrice <= 0)
             {
-                ttipOpenQty.ToolTipIcon = ToolTipIcon.Error;
-                ttipOpenQty.ToolTipTitle = "Invalid Field";
-                ttipOpenQty.Show("Price entered is invalid.", txtAvgPrice, 50, -20);
+                ttipTradingCal.ToolTipIcon = ToolTipIcon.Error;
+                ttipTradingCal.ToolTipTitle = "Invalid Field";
+                ttipTradingCal.Show("Price entered is invalid.", txtAvgPrice, 50, -20);
             }
             else
             {
@@ -74,11 +74,11 @@ namespace TradingCalculator
             }
         }
 
-        #region Average Down Box
+        #region Average Down Combo Box
 
         private void CustomPercentTextChanged(object sender, EventArgs e)
         {
-            ttipCustomPercent.Hide(txtAvgDownPercent);
+            ttipTradingCal.Hide(txtAvgDownPercent);
             decimal customPercent = ConvertTxtToDecimal(txtAvgDownPercent.Text);
 
             if (string.IsNullOrWhiteSpace(txtAvgDownPercent.Text))
@@ -87,16 +87,16 @@ namespace TradingCalculator
             }
             else if (customPercent <= 0)
             {
-                ttipCustomPercent.ToolTipIcon = ToolTipIcon.Error;
-                ttipCustomPercent.ToolTipTitle = "Invalid Field";
-                ttipCustomPercent.Show("Percent entered is invalid.", txtAvgDownPercent, 50, -20, 2000);
+                ttipTradingCal.ToolTipIcon = ToolTipIcon.Error;
+                ttipTradingCal.ToolTipTitle = "Invalid Field";
+                ttipTradingCal.Show("Percent entered is invalid.", txtAvgDownPercent, 50, -20, 2000);
                 lblPriceTargetCustom.Text = $"0";
             }
             else if (customPercent > 100)
             {
-                ttipCustomPercent.ToolTipIcon = ToolTipIcon.Error;
-                ttipCustomPercent.ToolTipTitle = "Invalid Field";
-                ttipCustomPercent.Show("Percent entered cannot exceed 100.", txtAvgDownPercent, 10, -20);
+                ttipTradingCal.ToolTipIcon = ToolTipIcon.Error;
+                ttipTradingCal.ToolTipTitle = "Invalid Field";
+                ttipTradingCal.Show("Percent entered cannot exceed 100.", txtAvgDownPercent, 10, -20);
             }
             else
             {
@@ -154,17 +154,19 @@ namespace TradingCalculator
             {
                 if (string.IsNullOrWhiteSpace(cboPercents.Text))
                 {
+                    chkReinvestProfit.Checked = false;
+                    chkReinvestProfit.Enabled = false;
                     ResetTakeProfitFields();
 
-                    ttipPriceChangePercent.ToolTipIcon = ToolTipIcon.Warning;
-                    ttipPriceChangePercent.ToolTipTitle = "Empty Field";
-                    ttipPriceChangePercent.Show("Please enter percent.", cboPercents, 10, -20, 2000);
+                    ttipTradingCal.ToolTipIcon = ToolTipIcon.Warning;
+                    ttipTradingCal.ToolTipTitle = "Empty Field";
+                    ttipTradingCal.Show("Please enter percent.", cboPercents, 10, -20, 2000);
                 }
                 else if (_priceChangePercent <= 0)
                 {
-                    ttipPriceChangePercent.ToolTipIcon = ToolTipIcon.Error;
-                    ttipPriceChangePercent.ToolTipTitle = "Invalid Field";
-                    ttipPriceChangePercent.Show("Percent entered is invalid.", cboPercents, 10, -20, 2000);
+                    ttipTradingCal.ToolTipIcon = ToolTipIcon.Error;
+                    ttipTradingCal.ToolTipTitle = "Invalid Field";
+                    ttipTradingCal.Show("Percent entered is invalid.", cboPercents, 10, -20, 2000);
                     cboPercents.SelectedIndex = 0;
                 }
                 else
@@ -187,7 +189,7 @@ namespace TradingCalculator
 
         private void ProfitPercentTxtChanged(object sender, EventArgs e)
         {
-            ttipProfitPercent.Hide(txtProfitPercent);
+            ttipTradingCal.Hide(txtProfitPercent);
             _profitPercent = ConvertTxtToDecimal(txtProfitPercent.Text);
 
             if (string.IsNullOrWhiteSpace(txtProfitPercent.Text))
@@ -198,15 +200,15 @@ namespace TradingCalculator
             }
             else if (_profitPercent <= 0 && chkReinvestProfit.Checked)
             {
-                ttipProfitPercent.ToolTipIcon = ToolTipIcon.Error;
-                ttipProfitPercent.ToolTipTitle = "Invalid Field";
-                ttipProfitPercent.Show("Percent entered is invalid.", txtProfitPercent, 10, -20, 2000);
+                ttipTradingCal.ToolTipIcon = ToolTipIcon.Error;
+                ttipTradingCal.ToolTipTitle = "Invalid Field";
+                ttipTradingCal.Show("Percent entered is invalid.", txtProfitPercent, 10, -20, 2000);
             }
             else if (_profitPercent > 100)
             {
-                ttipProfitPercent.ToolTipIcon = ToolTipIcon.Error;
-                ttipProfitPercent.ToolTipTitle = "Invalid Field";
-                ttipProfitPercent.Show("Percent entered cannot exceed 100.", txtProfitPercent, 10, -20);
+                ttipTradingCal.ToolTipIcon = ToolTipIcon.Error;
+                ttipTradingCal.ToolTipTitle = "Invalid Field";
+                ttipTradingCal.Show("Percent entered cannot exceed 100.", txtProfitPercent, 10, -20);
             }
             else
             {
@@ -278,6 +280,18 @@ namespace TradingCalculator
         #endregion Take Profit Combo box.
 
         #region Shared Methods
+
+        private void ClearAllClicked(object sender, EventArgs e)
+        {
+            _openQty = 0;
+            _avgPrice = 0;
+
+            txtOpenQty.Text = "";
+            txtAvgPrice.Text = "";
+
+            gbAvgDown.Enabled = false;
+            gbTakeProfit.Enabled = false;
+        }
 
         private void UpdateQtyAndPrice()
         {

@@ -64,11 +64,7 @@ namespace TradingCalculator
             this.cboPercents = new System.Windows.Forms.ComboBox();
             this.lblAvgPrice = new System.Windows.Forms.Label();
             this.lblOpenQty = new System.Windows.Forms.Label();
-            this.ttipOpenQty = new System.Windows.Forms.ToolTip(this.components);
-            this.ttipAvgPrice = new System.Windows.Forms.ToolTip(this.components);
-            this.ttipCustomPercent = new System.Windows.Forms.ToolTip(this.components);
-            this.ttipPriceChangePercent = new System.Windows.Forms.ToolTip(this.components);
-            this.ttipProfitPercent = new System.Windows.Forms.ToolTip(this.components);
+            this.ttipTradingCal = new System.Windows.Forms.ToolTip(this.components);
             this.menuStrip1.SuspendLayout();
             this.gbWorkSpace.SuspendLayout();
             this.gbAvgDown.SuspendLayout();
@@ -151,7 +147,7 @@ namespace TradingCalculator
             // 
             this.txtAvgPrice.Location = new System.Drawing.Point(82, 62);
             this.txtAvgPrice.Name = "txtAvgPrice";
-            this.txtAvgPrice.Size = new System.Drawing.Size(72, 20);
+            this.txtAvgPrice.Size = new System.Drawing.Size(56, 20);
             this.txtAvgPrice.TabIndex = 11;
             this.txtAvgPrice.TextChanged += new System.EventHandler(this.AvgPriceTextChanged);
             // 
@@ -181,6 +177,7 @@ namespace TradingCalculator
             this.btnClearAll.TabIndex = 8;
             this.btnClearAll.Text = "Clear All";
             this.btnClearAll.UseVisualStyleBackColor = true;
+            this.btnClearAll.Click += new System.EventHandler(this.ClearAllClicked);
             // 
             // gbAvgDown
             // 
@@ -535,7 +532,7 @@ namespace TradingCalculator
             "100"});
             this.cboPercents.Location = new System.Drawing.Point(123, 39);
             this.cboPercents.Name = "cboPercents";
-            this.cboPercents.Size = new System.Drawing.Size(43, 21);
+            this.cboPercents.Size = new System.Drawing.Size(50, 21);
             this.cboPercents.TabIndex = 4;
             this.cboPercents.SelectedIndexChanged += new System.EventHandler(this.PricePercentChanged);
             this.cboPercents.TextChanged += new System.EventHandler(this.PricePercentChanged);
@@ -627,8 +624,7 @@ namespace TradingCalculator
         private Label lblTotalProfit;
         private Label lblReinvestedAmt;
         private Label lblReinvest;
-        private ToolTip ttipOpenQty;
-        private ToolTip ttipAvgPrice;
+        private ToolTip ttipTradingCal;
         private TextBox txtAvgPrice;
         private TextBox txtOpenQty;
         private TextBox txtAvgDownPercent;
@@ -636,10 +632,7 @@ namespace TradingCalculator
         private Button btnClose;
         private Label avgDownPercLiteral;
         private Label lblCopyright;
-        private ToolTip ttipCustomPercent;
         private System.ComponentModel.IContainer components = null;
-        private ToolTip ttipPriceChangePercent;
-        private ToolTip ttipProfitPercent;
         private Label lblQuantityReinvested;
         private Label lblQR;
 
